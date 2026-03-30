@@ -56,6 +56,21 @@ class Downloader:
 
         return desired_link
 
+    def download_zip(self, zip_url: str) -> bytes:
+        """
+        Downloads a ZIP file from the given URL.
+        :param zip_url: URL extracted from the XML.
+        :return: The content of the ZIP file as bytes.
+        """
+
+        logger.info("Downloading ZIP from %s", zip_url)
+
+        response = requests.get(zip_url)
+        response.raise_for_status()
+
+        logger.info("Successfully downloaded ZIP (%d bytes", len(response.content))
+        return response.content
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
@@ -66,4 +81,5 @@ if __name__ == "__main__":
     xml_content = downloader.download_xml(url)
 
     zip_url = downloader.extract_link(xml_content)
-    print(zip_url)
+    zip_bytes = downloader.download_zip(zip_url)
+    print(len(zip_bytes))
