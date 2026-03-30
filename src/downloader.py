@@ -1,6 +1,8 @@
 import logging
 import requests
 import xml.etree.ElementTree as ET
+import io
+import zipfile
 
 logger = logging.getLogger("Downloader")
 
@@ -68,8 +70,35 @@ class Downloader:
         response = requests.get(zip_url)
         response.raise_for_status()
 
-        logger.info("Successfully downloaded ZIP (%d bytes", len(response.content))
+        logger.info("Successfully downloaded ZIP (%d bytes)", len(response.content))
         return response.content
+
+    def extract_xml_from_zip(self, zip_bytes:bytes) -> str:
+        """
+        Extracts the XML file from a ZIP.
+        :param zip_bytes: The content of the ZIP file as bytes.
+        :return: The XML content as a string.
+        """
+
+        logger.info("Extracting XML from ZIP (%d bytes)", len(zip_bytes))
+
+        with io.BytesIO(zip_bytes) as zip_buffer:
+            with zipfile.ZipFile(zip_buffer) as zip_file:
+                xml_files = [name for name in zip_file.namelist() if name.endswith(".xml")]
+                if not xml_files:
+                    raise ValueError("No XML file found")
+                elif len(xml_files) > 1:
+                    xml_name = xml_files[0]
+                    logger.info("Found more than 1 XML. Getting first one found: %s", xml_name)
+                else:
+                    xml_name = xml_files[0]
+                    logger.info("Found XML file in ZIP: %s", xml_name)
+
+                with zip_file.open(xml_name) as xml_file:
+                    xml_content = xml_file.read().decode("utf-8")
+
+        logger.info("Successfully extracted XML with (%d characters)", len(xml_content))
+        return xml_content
 
 
 if __name__ == "__main__":
@@ -78,8 +107,9 @@ if __name__ == "__main__":
     url = ("https://registers.esma.europa.eu/solr/esma_registers_firds_files/select?q=*&fq=publication_date:%5B2021-01"
            "-17T00:00:00Z+TO+2021-01-19T23:59:59Z%5D&wt=xml&indent=true&start=0&rows=100")
     downloader = Downloader()
-    xml_content = downloader.download_xml(url)
+    xml_with_links = downloader.download_xml(url)
 
-    zip_url = downloader.extract_link(xml_content)
+    zip_url = downloader.extract_link(xml_with_links)
     zip_bytes = downloader.download_zip(zip_url)
-    print(len(zip_bytes))
+    xml_content = downloader.extract_xml_from_zip(zip_bytes)
+    print(xml_content[:500])
