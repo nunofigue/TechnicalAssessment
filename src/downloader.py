@@ -1,5 +1,6 @@
 import logging
 import requests
+import xml.etree.ElementTree as ET
 
 logger = logging.getLogger("Downloader")
 
@@ -24,6 +25,37 @@ class Downloader:
 
         return response.text
 
+    def extract_link(self, xml_content: str) -> str:
+        """
+        Extract the second download link whose file_type is DLTINS.
+        :param xml_content: The XML content as a string.
+        :return: The url of the second DLTINS file.
+        """
+
+        logger.info("Parsing XML to find desired link.")
+
+        root = ET.fromstring(xml_content)
+        dltins_links = []
+
+        for doc in root.findall(".//doc"):
+            file_type = None
+            download_link = None
+            for field in doc.findall("str"):
+                if field.attrib.get("name") == "file_type":
+                    file_type = field.text
+                elif field.attrib.get("name") == "download_link":
+                    download_link = field.text
+            if file_type == "DLTINS" and download_link:
+                dltins_links.append(download_link)
+
+        if len(dltins_links) < 2:
+            raise ValueError("XML has less than 2 DLTINS links")
+
+        desired_link = dltins_links[1]
+        logger.info("Second DLTINS link found: %s", desired_link)
+
+        return desired_link
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
@@ -33,5 +65,5 @@ if __name__ == "__main__":
     downloader = Downloader()
     xml_content = downloader.download_xml(url)
 
-    #test download_xml
-    print(xml_content[:500])
+    zip_url = downloader.extract_link(xml_content)
+    print(zip_url)
