@@ -63,3 +63,28 @@ class Transformer:
         logger.info("Parsed %d records from XML", len(df))
         return df
 
+    def add_new_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Adds columns 'a_count' and 'contains_a' to the Dataframe.
+        :param df: Raw Dataframe
+        :return: DataFrame with new columns
+        """
+
+        logger.info("Adding 'a_count' and 'contains_a columns")
+
+        df["a_count"] = df["FinInstrmGnlAttrbts.FullNm"].apply(lambda x: x.count("a") if x else 0)
+        df["contains_a"] = df["a_count"].apply(lambda x: "YES" if x>0 else "NO")
+
+        logger.info("Columns added successfully")
+        return df
+
+    def save_to_csv(self, df: pd.DataFrame, file_path: str) -> None:
+        """
+        Saves the DataFrame with the added columns to a CSV file.
+        :param df: DataFrame with new columns
+        :param file_path: Path to save the CSV file
+        """
+
+        logger.info("Saving DataFrame to CSV: %s", file_path)
+        df.to_csv(file_path, index=False)
+        logger.info("CSV saved successfully")
