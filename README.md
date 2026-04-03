@@ -19,8 +19,11 @@ Note: Decided not to incorporate dependency management or linters, as i have alm
 Commands:
 
 To run the project:
+
     - pip install -r requirements.txt
+
     - python main.py
 
 To run the tests:
+
     - pytest
