@@ -15,3 +15,15 @@ There is a tests folder that includes three tests using pytest for:
 There is a data folder with 2 examples containing the first 100 rows of the dataset exported using the 2 different methods. 'sample_output.csv' corresponds to the standard save_to_csv() and 'sample_output_2.csv' corresponds used the store_csv() method that uses 'fsspec'.
 
 Note: Decided not to incorporate dependency management or linters, as i have almost no experience using them and had not enough time to explore it properly.
+
+Commands:
+
+To run the project:
+
+    - pip install -r requirements.txt
+
+    - python main.py
+
+To run the tests:
+
+    - pytest
